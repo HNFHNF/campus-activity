@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="960" height="560" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">报名请求结果分布</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">共 2878 条业务请求；duplicate + capacity_conflict + server_error = 183 条（6.4%）</text>
+<line x1="90.0" y1="470.0" x2="870.0" y2="470.0" stroke="#e3e9f2" stroke-width="1"/>
+<text x="78.0" y="474.0" font-size="11" fill="#7b8794" text-anchor="end" font-weight="normal">0</text>
+<line x1="90.0" y1="382.5" x2="870.0" y2="382.5" stroke="#e3e9f2" stroke-width="1"/>
+<text x="78.0" y="386.5" font-size="11" fill="#7b8794" text-anchor="end" font-weight="normal">422</text>
+<line x1="90.0" y1="295.0" x2="870.0" y2="295.0" stroke="#e3e9f2" stroke-width="1"/>
+<text x="78.0" y="299.0" font-size="11" fill="#7b8794" text-anchor="end" font-weight="normal">844</text>
+<line x1="90.0" y1="207.5" x2="870.0" y2="207.5" stroke="#e3e9f2" stroke-width="1"/>
+<text x="78.0" y="211.5" font-size="11" fill="#7b8794" text-anchor="end" font-weight="normal">1266</text>
+<line x1="90.0" y1="120.0" x2="870.0" y2="120.0" stroke="#e3e9f2" stroke-width="1"/>
+<text x="78.0" y="124.0" font-size="11" fill="#7b8794" text-anchor="end" font-weight="normal">1689</text>
+<rect x="116.0" y="120.0" width="78.0" height="350.0" rx="4" fill="#34c759"/>
+<text x="155.0" y="112.0" font-size="13" fill="#1d3040" text-anchor="middle" font-weight="700">1689</text>
+<text x="155.0" y="494.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">正式受理</text>
+<text x="155.0" y="512.0" font-size="11" fill="#7b8794" text-anchor="middle" font-weight="normal">58.7%</text>
+<rect x="246.0" y="288.5" width="78.0" height="181.5" rx="4" fill="#007aff"/>
+<text x="285.0" y="280.5" font-size="13" fill="#1d3040" text-anchor="middle" font-weight="700">876</text>
+<text x="285.0" y="494.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">进入候补</text>
+<text x="285.0" y="512.0" font-size="11" fill="#7b8794" text-anchor="middle" font-weight="normal">30.4%</text>
+<rect x="376.0" y="443.1" width="78.0" height="26.9" rx="4" fill="#8e8e93"/>
+<text x="415.0" y="435.1" font-size="13" fill="#1d3040" text-anchor="middle" font-weight="700">130</text>
+<text x="415.0" y="494.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">取消报名</text>
+<text x="415.0" y="512.0" font-size="11" fill="#7b8794" text-anchor="middle" font-weight="normal">4.5%</text>
+<rect x="506.0" y="443.9" width="78.0" height="26.1" rx="4" fill="#ff9500"/>
+<text x="545.0" y="435.9" font-size="13" fill="#1d3040" text-anchor="middle" font-weight="700">126</text>
+<text x="545.0" y="494.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">重复提交</text>
+<text x="545.0" y="512.0" font-size="11" fill="#7b8794" text-anchor="middle" font-weight="normal">4.4%</text>
+<rect x="636.0" y="461.5" width="78.0" height="8.5" rx="4" fill="#ff3b30"/>
+<text x="675.0" y="453.5" font-size="13" fill="#1d3040" text-anchor="middle" font-weight="700">41</text>
+<text x="675.0" y="494.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">名额冲突</text>
+<text x="675.0" y="512.0" font-size="11" fill="#7b8794" text-anchor="middle" font-weight="normal">1.4%</text>
+<rect x="766.0" y="466.7" width="78.0" height="3.3" rx="4" fill="#af52de"/>
+<text x="805.0" y="458.7" font-size="13" fill="#1d3040" text-anchor="middle" font-weight="700">16</text>
+<text x="805.0" y="494.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">服务错误</text>
+<text x="805.0" y="512.0" font-size="11" fill="#7b8794" text-anchor="middle" font-weight="normal">0.6%</text>
+<text x="48.0" y="525.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">口径：registration_log.csv 全部 2878 条请求，accepted/waitlisted 为成功受理；duplicate 为客户端重复提交被识别，capacity_conflict/server_error 未产生报名。</text>
+</g></svg>

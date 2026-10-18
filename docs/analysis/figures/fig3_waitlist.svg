@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="960" height="560" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">候补流转：进入、转正与观测结束时仍在等待</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">候补申请按 application_id 计数；转正 130 条，仍候补 746 条</text>
+<rect x="90.0" y="150.0" width="780.0" height="54.0" rx="8" fill="#007aff"/>
+<text x="106.0" y="184.0" font-size="15" fill="#ffffff" text-anchor="start" font-weight="700">进入候补队列</text>
+<text x="854.0" y="184.0" font-size="15" fill="#ffffff" text-anchor="end" font-weight="700">876 条</text>
+<text x="884.0" y="184.0" font-size="14" fill="#1d3040" text-anchor="start" font-weight="700">100.0%</text>
+<rect x="90.0" y="260.0" width="115.8" height="54.0" rx="8" fill="#34c759"/>
+<text x="106.0" y="294.0" font-size="15" fill="#ffffff" text-anchor="start" font-weight="700">观测期内转正</text>
+<text x="189.8" y="294.0" font-size="15" fill="#ffffff" text-anchor="end" font-weight="700">130 条</text>
+<text x="219.8" y="294.0" font-size="14" fill="#1d3040" text-anchor="start" font-weight="700">14.8%</text>
+<rect x="90.0" y="370.0" width="664.2" height="54.0" rx="8" fill="#ff9500"/>
+<text x="106.0" y="404.0" font-size="15" fill="#ffffff" text-anchor="start" font-weight="700">观测结束仍候补</text>
+<text x="738.2" y="404.0" font-size="15" fill="#ffffff" text-anchor="end" font-weight="700">746 条</text>
+<text x="768.2" y="404.0" font-size="14" fill="#1d3040" text-anchor="start" font-weight="700">85.2%</text>
+<text x="48.0" y="500.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">转正申请的中位等待时间：18.0 小时；最长 47.5 小时。</text>
+<text x="48.0" y="524.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">130 次取消均触发 1 次递补，取消到递补转正的中位间隔 120.0 秒。</text>
+</g></svg>

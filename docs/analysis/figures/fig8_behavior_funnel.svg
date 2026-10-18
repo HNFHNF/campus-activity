@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="960" height="560" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">会话行为漏斗（按会话中是否出现该页面）</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">1416 个会话；行为表不保证完整路径，因此不解释为严格步骤转化</text>
+<text x="244.0" y="168.0" font-size="14" fill="#425466" text-anchor="end" font-weight="normal">列表 + 详情</text>
+<rect x="260.0" y="140.0" width="547.3" height="42.0" rx="8" fill="#007aff"/>
+<text x="274.0" y="167.0" font-size="13" fill="#ffffff" text-anchor="start" font-weight="700">1250 个会话</text>
+<text x="819.3" y="167.0" font-size="14" fill="#1d3040" text-anchor="start" font-weight="700">88.3%</text>
+<text x="244.0" y="258.0" font-size="14" fill="#425466" text-anchor="end" font-weight="normal">进入报名页</text>
+<rect x="260.0" y="230.0" width="109.9" height="42.0" rx="8" fill="#34c759"/>
+<text x="274.0" y="257.0" font-size="13" fill="#ffffff" text-anchor="start" font-weight="700">251 个会话</text>
+<text x="381.9" y="257.0" font-size="14" fill="#1d3040" text-anchor="start" font-weight="700">17.7%</text>
+<text x="244.0" y="348.0" font-size="14" fill="#425466" text-anchor="end" font-weight="normal">查看报名状态</text>
+<rect x="260.0" y="320.0" width="128.3" height="42.0" rx="8" fill="#ff9500"/>
+<text x="274.0" y="347.0" font-size="13" fill="#ffffff" text-anchor="start" font-weight="700">293 个会话</text>
+<text x="400.3" y="347.0" font-size="14" fill="#1d3040" text-anchor="start" font-weight="700">20.7%</text>
+<text x="48.0" y="470.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">详情页访问 5414 次 / 列表页访问 5041 次 = 1.07；每名学生中位数：列表 11 次、详情 12 次。</text>
+<text x="48.0" y="494.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">解释：学生需要反复打开详情才能判断活动是否合适，与反馈中“一条条打开看/标题差不多”一致。</text>
+</g></svg>

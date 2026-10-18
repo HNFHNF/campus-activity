@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="960" height="560" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">报名接口响应耗时（全量请求）</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">P95 = 1555.0 ms；高峰窗口 0–10 分钟 P95 = 1789.0 ms，其余时段 1402.0 ms</text>
+<rect x="125.3" y="420.0" width="53.8" height="40.0" rx="4" fill="#007aff"/>
+<text x="151.9" y="413.0" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">252.0</text>
+<rect x="188.7" y="212.9" width="53.8" height="247.1" rx="4" fill="#ff9500"/>
+<text x="215.3" y="205.9" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">1555.0</text>
+<rect x="252.0" y="142.9" width="53.8" height="317.1" rx="4" fill="#ff3b30"/>
+<text x="278.6" y="135.9" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">1996.0</text>
+<text x="226.7" y="486.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">全部请求</text>
+<rect x="378.7" y="347.4" width="53.8" height="112.6" rx="4" fill="#007aff"/>
+<text x="405.3" y="340.4" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">709.0</text>
+<rect x="442.0" y="175.8" width="53.8" height="284.2" rx="4" fill="#ff9500"/>
+<text x="468.6" y="168.8" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">1789.0</text>
+<rect x="505.3" y="130.0" width="53.8" height="330.0" rx="4" fill="#ff3b30"/>
+<text x="531.9" y="123.0" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">2077.0</text>
+<text x="480.0" y="486.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">开放后 10 分钟</text>
+<rect x="632.0" y="423.1" width="53.8" height="36.9" rx="4" fill="#007aff"/>
+<text x="658.6" y="416.1" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">232.0</text>
+<rect x="695.3" y="237.2" width="53.8" height="222.8" rx="4" fill="#ff9500"/>
+<text x="721.9" y="230.2" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">1402.0</text>
+<rect x="758.7" y="166.5" width="53.8" height="293.5" rx="4" fill="#ff3b30"/>
+<text x="785.3" y="159.5" font-size="11" fill="#1d3040" text-anchor="middle" font-weight="700">1847.0</text>
+<text x="733.3" y="486.0" font-size="12" fill="#425466" text-anchor="middle" font-weight="normal">其余时段</text>
+<rect x="100" y="102" width="12" height="12" rx="2" fill="#007aff"/>
+<text x="118.0" y="113.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">P50</text>
+<rect x="220" y="102" width="12" height="12" rx="2" fill="#ff9500"/>
+<text x="238.0" y="113.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">P95</text>
+<rect x="340" y="102" width="12" height="12" rx="2" fill="#ff3b30"/>
+<text x="358.0" y="113.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">P99</text>
+<text x="48.0" y="520.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">口径：registration_log.latency_ms 全量 2878 条；系统日志中的 SLOW_REQUEST（250 条）只用于定位活动与时段。</text>
+</g></svg>

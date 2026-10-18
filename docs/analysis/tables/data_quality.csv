@@ -1,0 +1,13 @@
+﻿item,value
+behavior_rows_raw,11027
+behavior_exact_duplicate_rows,28
+behavior_rows_after_dedup,10999
+behavior_missing_student_id,13
+behavior_missing_device,22
+behavior_missing_activity_id,5041
+registration_missing_fields,0
+waitlist_missing_fields,0
+system_log_missing_request_id,307
+system_log_registration_events,485
+registration_requests,2878
+note,行为表存在 28 行完全重复采集，已在行为统计中剔除；system_log 只覆盖部分业务请求（485 条 registration_api 日志 / 2878 条报名请求），因此系统日志只用于“慢请求与错误事件”的计数，不用于推算全量请求占比。

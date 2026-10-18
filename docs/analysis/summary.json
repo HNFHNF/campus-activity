@@ -1,0 +1,1186 @@
+{
+  "meta": {
+    "title": "实验三 基于运行数据的需求演化｜V2.0 模拟运行数据分析",
+    "generated_at": "2026-10-18 16:52:11",
+    "data_dir": "项目数据/data",
+    "files": [
+      "activity.csv",
+      "user_behavior.csv",
+      "registration_log.csv",
+      "waitlist_log.csv",
+      "feedback.csv",
+      "system_log.csv",
+      "字段字典.csv"
+    ],
+    "tool": "Python 3 标准库（csv/json/statistics/collections）",
+    "analysis_script": "tools/analyze.py"
+  },
+  "definitions": {
+    "request": "registration_log.csv 的一行，代表一次报名/取消业务请求；同一学生可因重试产生多条请求。",
+    "apply_request": "action=apply 的请求；duplicate/capacity_conflict/server_error 都是未成功产生新报名的请求。",
+    "unique_applicant": "按 (student_id, activity_id) 去重后的申请学生数，用于供需比，避免重试放大需求。",
+    "demand_ratio": "去重申请学生数 ÷ 活动容量（capacity）。",
+    "final_state": "把 registration_log 与 waitlist_log 按时间回放后的最终报名状态：confirmed 或 waitlisted。",
+    "promotion_ratio": "waitlist_log 中最终转为 accepted 的候补申请数 ÷ 进入过 waiting 的候补申请数。",
+    "status_page_ratio": "访问过 registration_status 页面的会话数 ÷ 有 session_id 的会话数。",
+    "feedback_ratio": "命中的反馈条数 ÷ 112 条反馈；反馈是非随机样本，不能外推到全体学生。",
+    "peak_window": "报名开放后 0–10 分钟内的 apply 请求；用于对比高峰与其余时段的耗时。",
+    "conflict": "同一学生最终正式报名的活动之间，开始时间相差 < 2 小时；缺少结束时间与课表，属于代理口径。"
+  },
+  "overview": {
+    "period": {
+      "behavior": {
+        "min": "2026-09-21 08:02:00",
+        "max": "2026-10-07 14:37:44"
+      },
+      "registration": {
+        "min": "2026-09-21 09:00:05",
+        "max": "2026-10-04 15:00:00"
+      },
+      "waitlist": {
+        "min": "2026-09-21 09:04:53",
+        "max": "2026-10-04 15:02:00"
+      },
+      "system_log": {
+        "min": "2026-09-21 07:46:00",
+        "max": "2026-10-04 22:40:00"
+      },
+      "feedback": {
+        "min": "2026-09-21 10:00:43",
+        "max": "2026-10-06 05:02:00"
+      }
+    },
+    "activities": 24,
+    "activity_categories": {
+      "校园服务": 2,
+      "文化艺术": 6,
+      "体育健康": 3,
+      "公益实践": 2,
+      "科普实践": 1,
+      "语言交流": 1,
+      "科技创新": 3,
+      "校园生活": 3,
+      "职业发展": 1,
+      "技能提升": 2
+    },
+    "total_capacity": 1781,
+    "capacity_range": [
+      31,
+      110
+    ],
+    "registered_students": 420,
+    "behavior_students": 399,
+    "behavior_sessions": 1416,
+    "feedback_rows": 112,
+    "feedback_unique_texts": 26,
+    "feedback_students": 96,
+    "system_logs": 792,
+    "rows": {
+      "activity": 24,
+      "user_behavior": 11027,
+      "registration_log": 2878,
+      "waitlist_log": 1006,
+      "feedback": 112,
+      "system_log": 792
+    }
+  },
+  "data_quality": {
+    "behavior_rows_raw": 11027,
+    "behavior_exact_duplicate_rows": 28,
+    "behavior_rows_after_dedup": 10999,
+    "behavior_missing_student_id": 13,
+    "behavior_missing_device": 22,
+    "behavior_missing_activity_id": 5041,
+    "registration_missing_fields": 0,
+    "waitlist_missing_fields": 0,
+    "system_log_missing_request_id": 307,
+    "system_log_registration_events": 485,
+    "registration_requests": 2878,
+    "note": "行为表存在 28 行完全重复采集，已在行为统计中剔除；system_log 只覆盖部分业务请求（485 条 registration_api 日志 / 2878 条报名请求），因此系统日志只用于“慢请求与错误事件”的计数，不用于推算全量请求占比。"
+  },
+  "registration": {
+    "requests": 2878,
+    "actions": {
+      "apply": 2748,
+      "cancel": 130
+    },
+    "results": {
+      "accepted": 1689,
+      "duplicate": 126,
+      "capacity_conflict": 41,
+      "waitlisted": 876,
+      "server_error": 16,
+      "cancelled": 130
+    },
+    "result_ratio_of_all_requests": {
+      "accepted": 58.7,
+      "duplicate": 4.4,
+      "capacity_conflict": 1.4,
+      "waitlisted": 30.4,
+      "server_error": 0.6,
+      "cancelled": 4.5
+    },
+    "apply_requests": 2748,
+    "cancel_requests": 130,
+    "apply_success_accepted": 1689,
+    "apply_success_ratio_of_apply": 61.5,
+    "apply_waitlisted": 876,
+    "apply_duplicate": 126,
+    "apply_duplicate_ratio_of_apply": 4.6,
+    "apply_capacity_conflict": 41,
+    "apply_server_error": 16,
+    "unclear_or_failed_events": 183,
+    "unclear_or_failed_ratio_of_all_requests": 6.4,
+    "client_retry": {
+      "total": 126,
+      "all_are_duplicate": true,
+      "ratio_of_all_requests": 4.4
+    },
+    "latency_ms_by_result": {
+      "accepted": {
+        "n": 1689,
+        "mean": 301.4,
+        "p50": 215.0,
+        "p90": 455.0,
+        "p95": 1197.0,
+        "p99": 1682.0,
+        "max": 2430
+      },
+      "waitlisted": {
+        "n": 876,
+        "mean": 755.4,
+        "p50": 528.0,
+        "p90": 1571.0,
+        "p95": 1728.0,
+        "p99": 2161.0,
+        "max": 2496
+      },
+      "duplicate": {
+        "n": 126,
+        "mean": 332.4,
+        "p50": 221.0,
+        "p90": 747.0,
+        "p95": 811.0,
+        "p99": 893.0,
+        "max": 907
+      },
+      "capacity_conflict": {
+        "n": 41,
+        "mean": 1290.1,
+        "p50": 1308.0,
+        "p90": 1996.0,
+        "p95": 2295.0,
+        "p99": 2650.0,
+        "max": 2650
+      },
+      "server_error": {
+        "n": 16,
+        "mean": 982.9,
+        "p50": 813.0,
+        "p90": 2052.0,
+        "p95": 2052.0,
+        "p99": 2077.0,
+        "max": 2077
+      },
+      "cancelled": {
+        "n": 130,
+        "mean": 196.5,
+        "p50": 198.0,
+        "p90": 275.0,
+        "p95": 293.0,
+        "p99": 298.0,
+        "max": 300
+      }
+    },
+    "latency_ms_all": {
+      "n": 2878,
+      "mean": 454.1,
+      "p50": 252.0,
+      "p90": 1269.0,
+      "p95": 1555.0,
+      "p99": 1996.0,
+      "max": 2650
+    },
+    "time_from_registration_open": {
+      "within_1min": {
+        "count": 84,
+        "ratio_of_all_requests": 2.9,
+        "apply_count": 84,
+        "ratio_of_apply_requests": 3.1
+      },
+      "within_5min": {
+        "count": 380,
+        "ratio_of_all_requests": 13.2,
+        "apply_count": 380,
+        "ratio_of_apply_requests": 13.8
+      },
+      "within_10min": {
+        "count": 688,
+        "ratio_of_all_requests": 23.9,
+        "apply_count": 688,
+        "ratio_of_apply_requests": 25.0
+      },
+      "within_30min": {
+        "count": 1158,
+        "ratio_of_all_requests": 40.2,
+        "apply_count": 1158,
+        "ratio_of_apply_requests": 42.1
+      },
+      "within_60min": {
+        "count": 1177,
+        "ratio_of_all_requests": 40.9,
+        "apply_count": 1177,
+        "ratio_of_apply_requests": 42.8
+      },
+      "within_180min": {
+        "count": 1262,
+        "ratio_of_all_requests": 43.8,
+        "apply_count": 1262,
+        "ratio_of_apply_requests": 45.9
+      },
+      "within_720min": {
+        "count": 1684,
+        "ratio_of_all_requests": 58.5,
+        "apply_count": 1684,
+        "ratio_of_apply_requests": 61.3
+      },
+      "within_1440min": {
+        "count": 2208,
+        "ratio_of_all_requests": 76.7,
+        "apply_count": 2208,
+        "ratio_of_apply_requests": 80.3
+      }
+    },
+    "requests_before_open": 0,
+    "peak_window": {
+      "definition": "报名开放后 0–10 分钟内的 apply 请求（高峰窗口）",
+      "requests": 688,
+      "ratio_of_apply_requests": 25.0,
+      "latency_ms": {
+        "n": 688,
+        "mean": 794.8,
+        "p50": 709.0,
+        "p90": 1587.0,
+        "p95": 1789.0,
+        "p99": 2077.0,
+        "max": 2496
+      },
+      "other_latency_ms": {
+        "n": 2060,
+        "mean": 356.5,
+        "p50": 232.0,
+        "p90": 896.0,
+        "p95": 1402.0,
+        "p99": 1847.0,
+        "max": 2650
+      },
+      "slow_ratio_peak": 37.9,
+      "slow_ratio_other": 9.1
+    }
+  },
+  "final_registration_state": {
+    "counts": {
+      "confirmed": 1689,
+      "waitlisted": 746
+    },
+    "students": 420,
+    "by_activity": [
+      {
+        "activity_id": "A005",
+        "capacity": 31,
+        "final_confirmed": 31,
+        "final_waitlisted": 134
+      },
+      {
+        "activity_id": "A010",
+        "capacity": 32,
+        "final_confirmed": 32,
+        "final_waitlisted": 127
+      },
+      {
+        "activity_id": "A015",
+        "capacity": 37,
+        "final_confirmed": 37,
+        "final_waitlisted": 136
+      },
+      {
+        "activity_id": "A021",
+        "capacity": 40,
+        "final_confirmed": 40,
+        "final_waitlisted": 135
+      },
+      {
+        "activity_id": "A001",
+        "capacity": 43,
+        "final_confirmed": 43,
+        "final_waitlisted": 124
+      },
+      {
+        "activity_id": "A003",
+        "capacity": 65,
+        "final_confirmed": 65,
+        "final_waitlisted": 24
+      },
+      {
+        "activity_id": "A002",
+        "capacity": 62,
+        "final_confirmed": 62,
+        "final_waitlisted": 15
+      },
+      {
+        "activity_id": "A019",
+        "capacity": 66,
+        "final_confirmed": 66,
+        "final_waitlisted": 18
+      },
+      {
+        "activity_id": "A004",
+        "capacity": 62,
+        "final_confirmed": 62,
+        "final_waitlisted": 10
+      },
+      {
+        "activity_id": "A013",
+        "capacity": 65,
+        "final_confirmed": 65,
+        "final_waitlisted": 9
+      },
+      {
+        "activity_id": "A011",
+        "capacity": 76,
+        "final_confirmed": 76,
+        "final_waitlisted": 8
+      },
+      {
+        "activity_id": "A014",
+        "capacity": 72,
+        "final_confirmed": 72,
+        "final_waitlisted": 5
+      },
+      {
+        "activity_id": "A023",
+        "capacity": 69,
+        "final_confirmed": 69,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A018",
+        "capacity": 76,
+        "final_confirmed": 76,
+        "final_waitlisted": 1
+      },
+      {
+        "activity_id": "A008",
+        "capacity": 95,
+        "final_confirmed": 95,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A012",
+        "capacity": 87,
+        "final_confirmed": 87,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A016",
+        "capacity": 97,
+        "final_confirmed": 97,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A022",
+        "capacity": 89,
+        "final_confirmed": 84,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A020",
+        "capacity": 100,
+        "final_confirmed": 94,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A007",
+        "capacity": 110,
+        "final_confirmed": 98,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A017",
+        "capacity": 97,
+        "final_confirmed": 84,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A006",
+        "capacity": 97,
+        "final_confirmed": 81,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A009",
+        "capacity": 104,
+        "final_confirmed": 86,
+        "final_waitlisted": 0
+      },
+      {
+        "activity_id": "A024",
+        "capacity": 109,
+        "final_confirmed": 87,
+        "final_waitlisted": 0
+      }
+    ]
+  },
+  "cancellation": {
+    "cancel_requests": 130,
+    "ever_confirmed_including_promoted": 1819,
+    "cancel_ratio_of_ever_confirmed": 7.1,
+    "final_confirmed": 1689,
+    "final_waitlisted": 746,
+    "note": "最终正式人数 = 首轮 accepted + 候补递补转正 - 取消，按时间顺序回放。"
+  },
+  "waitlist": {
+    "applications": 876,
+    "promoted": 130,
+    "promotion_ratio": 14.8,
+    "still_waitlisted_at_observation_end": 746,
+    "still_waitlisted_ratio": 85.2,
+    "promotion_wait_hours": {
+      "n": 130,
+      "mean": 26.8,
+      "p50": 18.0,
+      "p90": 46.3,
+      "p95": 46.8,
+      "p99": 47.5,
+      "max": 47.5
+    },
+    "cancel_requests": 130,
+    "cancel_to_promotion_seconds": {
+      "median": 120.0,
+      "max": 120.0,
+      "definition": "按取消请求与递补转正记录的时间排序后一一配对（观测数据中 130 次取消对应 130 次递补）。"
+    },
+    "reason_codes": {
+      "CAPACITY_FULL": 876,
+      "SLOT_RELEASED": 130
+    }
+  },
+  "demand": {
+    "definition": "供需比 = 去重申请学生数 / 活动容量；申请人数按 (student_id, activity_id) 去重，避免重复提交放大需求。",
+    "top_activities": [
+      {
+        "activity_id": "A005",
+        "activity_name": "周末摄影工作坊",
+        "category": "文化艺术",
+        "capacity": 31,
+        "applications": 200,
+        "applicants": 185,
+        "accepted": 31,
+        "waitlisted": 146,
+        "duplicate": 15,
+        "capacity_conflict": 5,
+        "server_error": 3,
+        "cancelled": 12,
+        "promoted": 12,
+        "final_confirmed": 31,
+        "final_waitlisted": 134,
+        "demand_ratio": 5.97,
+        "waitlist_ratio": 4.32,
+        "slow_requests": 47
+      },
+      {
+        "activity_id": "A010",
+        "activity_name": "桌游协作交流",
+        "category": "校园生活",
+        "capacity": 32,
+        "applications": 195,
+        "applicants": 185,
+        "accepted": 32,
+        "waitlisted": 139,
+        "duplicate": 10,
+        "capacity_conflict": 13,
+        "server_error": 1,
+        "cancelled": 12,
+        "promoted": 12,
+        "final_confirmed": 32,
+        "final_waitlisted": 127,
+        "demand_ratio": 5.78,
+        "waitlist_ratio": 3.97,
+        "slow_requests": 41
+      },
+      {
+        "activity_id": "A015",
+        "activity_name": "模拟面试训练营",
+        "category": "职业发展",
+        "capacity": 37,
+        "applications": 200,
+        "applicants": 185,
+        "accepted": 37,
+        "waitlisted": 143,
+        "duplicate": 15,
+        "capacity_conflict": 3,
+        "server_error": 2,
+        "cancelled": 7,
+        "promoted": 7,
+        "final_confirmed": 37,
+        "final_waitlisted": 136,
+        "demand_ratio": 5.0,
+        "waitlist_ratio": 3.68,
+        "slow_requests": 61
+      },
+      {
+        "activity_id": "A021",
+        "activity_name": "热门音乐交流会",
+        "category": "文化艺术",
+        "capacity": 40,
+        "applications": 194,
+        "applicants": 185,
+        "accepted": 40,
+        "waitlisted": 141,
+        "duplicate": 9,
+        "capacity_conflict": 2,
+        "server_error": 2,
+        "cancelled": 6,
+        "promoted": 6,
+        "final_confirmed": 40,
+        "final_waitlisted": 135,
+        "demand_ratio": 4.62,
+        "waitlist_ratio": 3.38,
+        "slow_requests": 46
+      },
+      {
+        "activity_id": "A001",
+        "activity_name": "迎新校园导览",
+        "category": "校园服务",
+        "capacity": 43,
+        "applications": 199,
+        "applicants": 185,
+        "accepted": 43,
+        "waitlisted": 132,
+        "duplicate": 14,
+        "capacity_conflict": 7,
+        "server_error": 3,
+        "cancelled": 8,
+        "promoted": 8,
+        "final_confirmed": 43,
+        "final_waitlisted": 124,
+        "demand_ratio": 4.3,
+        "waitlist_ratio": 2.88,
+        "slow_requests": 55
+      },
+      {
+        "activity_id": "A003",
+        "activity_name": "轻量跑步训练",
+        "category": "体育健康",
+        "capacity": 65,
+        "applications": 102,
+        "applicants": 98,
+        "accepted": 65,
+        "waitlisted": 32,
+        "duplicate": 4,
+        "capacity_conflict": 0,
+        "server_error": 1,
+        "cancelled": 8,
+        "promoted": 8,
+        "final_confirmed": 65,
+        "final_waitlisted": 24,
+        "demand_ratio": 1.51,
+        "waitlist_ratio": 0.37,
+        "slow_requests": 0
+      },
+      {
+        "activity_id": "A002",
+        "activity_name": "电影配音体验",
+        "category": "文化艺术",
+        "capacity": 62,
+        "applications": 91,
+        "applicants": 88,
+        "accepted": 62,
+        "waitlisted": 25,
+        "duplicate": 3,
+        "capacity_conflict": 1,
+        "server_error": 0,
+        "cancelled": 10,
+        "promoted": 10,
+        "final_confirmed": 62,
+        "final_waitlisted": 15,
+        "demand_ratio": 1.42,
+        "waitlist_ratio": 0.24,
+        "slow_requests": 0
+      },
+      {
+        "activity_id": "A019",
+        "activity_name": "读书交流沙龙",
+        "category": "校园生活",
+        "capacity": 66,
+        "applications": 93,
+        "applicants": 90,
+        "accepted": 66,
+        "waitlisted": 24,
+        "duplicate": 3,
+        "capacity_conflict": 0,
+        "server_error": 0,
+        "cancelled": 6,
+        "promoted": 6,
+        "final_confirmed": 66,
+        "final_waitlisted": 18,
+        "demand_ratio": 1.36,
+        "waitlist_ratio": 0.27,
+        "slow_requests": 0
+      },
+      {
+        "activity_id": "A004",
+        "activity_name": "吉他入门交流",
+        "category": "文化艺术",
+        "capacity": 62,
+        "applications": 87,
+        "applicants": 83,
+        "accepted": 62,
+        "waitlisted": 19,
+        "duplicate": 4,
+        "capacity_conflict": 1,
+        "server_error": 1,
+        "cancelled": 9,
+        "promoted": 9,
+        "final_confirmed": 62,
+        "final_waitlisted": 10,
+        "demand_ratio": 1.34,
+        "waitlist_ratio": 0.16,
+        "slow_requests": 0
+      },
+      {
+        "activity_id": "A013",
+        "activity_name": "青年志愿服务",
+        "category": "公益实践",
+        "capacity": 65,
+        "applications": 89,
+        "applicants": 87,
+        "accepted": 65,
+        "waitlisted": 21,
+        "duplicate": 2,
+        "capacity_conflict": 1,
+        "server_error": 0,
+        "cancelled": 12,
+        "promoted": 12,
+        "final_confirmed": 65,
+        "final_waitlisted": 9,
+        "demand_ratio": 1.34,
+        "waitlist_ratio": 0.14,
+        "slow_requests": 0
+      },
+      {
+        "activity_id": "A011",
+        "activity_name": "篮球友谊赛",
+        "category": "体育健康",
+        "capacity": 76,
+        "applications": 98,
+        "applicants": 95,
+        "accepted": 76,
+        "waitlisted": 17,
+        "duplicate": 3,
+        "capacity_conflict": 2,
+        "server_error": 0,
+        "cancelled": 9,
+        "promoted": 9,
+        "final_confirmed": 76,
+        "final_waitlisted": 8,
+        "demand_ratio": 1.25,
+        "waitlist_ratio": 0.11,
+        "slow_requests": 0
+      },
+      {
+        "activity_id": "A014",
+        "activity_name": "数据故事分享会",
+        "category": "科技创新",
+        "capacity": 72,
+        "applications": 91,
+        "applicants": 88,
+        "accepted": 72,
+        "waitlisted": 16,
+        "duplicate": 3,
+        "capacity_conflict": 0,
+        "server_error": 0,
+        "cancelled": 11,
+        "promoted": 11,
+        "final_confirmed": 72,
+        "final_waitlisted": 5,
+        "demand_ratio": 1.22,
+        "waitlist_ratio": 0.07,
+        "slow_requests": 0
+      }
+    ],
+    "hot_activities": [
+      {
+        "activity_id": "A005",
+        "activity_name": "周末摄影工作坊",
+        "category": "文化艺术",
+        "capacity": 31,
+        "applications": 200,
+        "applicants": 185,
+        "accepted": 31,
+        "waitlisted": 146,
+        "duplicate": 15,
+        "capacity_conflict": 5,
+        "server_error": 3,
+        "cancelled": 12,
+        "promoted": 12,
+        "final_confirmed": 31,
+        "final_waitlisted": 134,
+        "demand_ratio": 5.97,
+        "waitlist_ratio": 4.32,
+        "slow_requests": 47
+      },
+      {
+        "activity_id": "A010",
+        "activity_name": "桌游协作交流",
+        "category": "校园生活",
+        "capacity": 32,
+        "applications": 195,
+        "applicants": 185,
+        "accepted": 32,
+        "waitlisted": 139,
+        "duplicate": 10,
+        "capacity_conflict": 13,
+        "server_error": 1,
+        "cancelled": 12,
+        "promoted": 12,
+        "final_confirmed": 32,
+        "final_waitlisted": 127,
+        "demand_ratio": 5.78,
+        "waitlist_ratio": 3.97,
+        "slow_requests": 41
+      },
+      {
+        "activity_id": "A015",
+        "activity_name": "模拟面试训练营",
+        "category": "职业发展",
+        "capacity": 37,
+        "applications": 200,
+        "applicants": 185,
+        "accepted": 37,
+        "waitlisted": 143,
+        "duplicate": 15,
+        "capacity_conflict": 3,
+        "server_error": 2,
+        "cancelled": 7,
+        "promoted": 7,
+        "final_confirmed": 37,
+        "final_waitlisted": 136,
+        "demand_ratio": 5.0,
+        "waitlist_ratio": 3.68,
+        "slow_requests": 61
+      },
+      {
+        "activity_id": "A021",
+        "activity_name": "热门音乐交流会",
+        "category": "文化艺术",
+        "capacity": 40,
+        "applications": 194,
+        "applicants": 185,
+        "accepted": 40,
+        "waitlisted": 141,
+        "duplicate": 9,
+        "capacity_conflict": 2,
+        "server_error": 2,
+        "cancelled": 6,
+        "promoted": 6,
+        "final_confirmed": 40,
+        "final_waitlisted": 135,
+        "demand_ratio": 4.62,
+        "waitlist_ratio": 3.38,
+        "slow_requests": 46
+      },
+      {
+        "activity_id": "A001",
+        "activity_name": "迎新校园导览",
+        "category": "校园服务",
+        "capacity": 43,
+        "applications": 199,
+        "applicants": 185,
+        "accepted": 43,
+        "waitlisted": 132,
+        "duplicate": 14,
+        "capacity_conflict": 7,
+        "server_error": 3,
+        "cancelled": 8,
+        "promoted": 8,
+        "final_confirmed": 43,
+        "final_waitlisted": 124,
+        "demand_ratio": 4.3,
+        "waitlist_ratio": 2.88,
+        "slow_requests": 55
+      }
+    ],
+    "hot_threshold": 2.0,
+    "hot_activity_count": 5,
+    "hot_share": {
+      "capacity": 183,
+      "capacity_ratio_of_all": 10.3,
+      "applicants": 925,
+      "applicants_ratio_of_all": 35.3,
+      "waitlisted": 656,
+      "waitlisted_ratio_of_all": 87.9,
+      "slow_requests": 250,
+      "slow_requests_ratio_of_all": 100.0
+    },
+    "undersubscribed_count": 7
+  },
+  "behavior": {
+    "rows_used": 10999,
+    "page_counts": {
+      "activity_list": 5041,
+      "activity_detail": 5414,
+      "registration_status": 293,
+      "registration": 251
+    },
+    "event_counts": {
+      "list_view": 5041,
+      "detail_view": 5414,
+      "status_view": 293,
+      "registration_page_view": 251
+    },
+    "sessions": 1416,
+    "students": 399,
+    "pages_per_session": {
+      "median": 6.0,
+      "mean": 7.8
+    },
+    "funnel": {
+      "sessions_with_list": 1250,
+      "sessions_with_list_and_detail": 1250,
+      "sessions_with_registration_page": 251,
+      "sessions_with_status_page": 293,
+      "ratio_list_and_detail": 88.3,
+      "ratio_registration_page": 17.7,
+      "ratio_status_page": 20.7,
+      "detail_views_per_list_view": 1.07,
+      "note": "行为表只保证页面访问被记录，不保证会话内完整路径；漏斗按“会话中是否出现该页面”统计，不代表严格顺序。"
+    },
+    "per_student_median": {
+      "list_views": 11,
+      "detail_views": 12,
+      "status_views": 1
+    },
+    "device": {
+      "counts": {
+        "desktop": 2835,
+        "mobile": 7803,
+        "tablet": 339,
+        "": 22
+      },
+      "ratios": {
+        "desktop": 25.8,
+        "mobile": 70.9,
+        "tablet": 3.1,
+        "": 0.2
+      },
+      "registration_page_device": {
+        "desktop": 52,
+        "mobile": 188,
+        "tablet": 11
+      },
+      "status_page_device": {
+        "desktop": 57,
+        "mobile": 229,
+        "tablet": 6
+      },
+      "note": "移动端（mobile）占全部行为事件的 70.9%；报名页与状态页中移动端占比更高（74.9%、78.2%）。",
+      "mobile_share_registration_page": 74.9,
+      "mobile_share_status_page": 78.2
+    },
+    "hour_distribution": {
+      "0": 7,
+      "1": 6,
+      "2": 4,
+      "3": 5,
+      "4": 6,
+      "5": 12,
+      "6": 6,
+      "7": 3,
+      "8": 728,
+      "9": 670,
+      "10": 748,
+      "11": 767,
+      "12": 861,
+      "13": 635,
+      "14": 1063,
+      "15": 776,
+      "16": 784,
+      "17": 656,
+      "18": 763,
+      "19": 882,
+      "20": 857,
+      "21": 724,
+      "22": 33,
+      "23": 3
+    }
+  },
+  "feedback": {
+    "rows": 112,
+    "unique_texts": 26,
+    "unique_students": 96,
+    "themes": [
+      {
+        "theme": "状态变化不可感知/需要自己查",
+        "feedback_rows": 33,
+        "ratio_of_feedback_rows": 29.5,
+        "unique_students": 28,
+        "ratio_of_feedback_students": 29.2,
+        "keywords": [
+          "候补结果",
+          "自己去查状态",
+          "登录后才知道",
+          "已经是成功",
+          "隔了两天",
+          "报名结果的变化",
+          "专门去页面查看",
+          "排队"
+        ]
+      },
+      {
+        "theme": "正向评价",
+        "feedback_rows": 27,
+        "ratio_of_feedback_rows": 24.1,
+        "unique_students": 26,
+        "ratio_of_feedback_students": 27.1,
+        "keywords": [
+          "比较顺利",
+          "比较齐全",
+          "很顺畅",
+          "组织得不错",
+          "基本都能查到",
+          "比较方便",
+          "目前用起来还可以"
+        ]
+      },
+      {
+        "theme": "发现与筛选效率",
+        "feedback_rows": 23,
+        "ratio_of_feedback_rows": 20.5,
+        "unique_students": 20,
+        "ratio_of_feedback_students": 20.8,
+        "keywords": [
+          "标题看着差不多",
+          "查起来有点费时间",
+          "一条条打开",
+          "翻了几轮",
+          "逐个看",
+          "想找周末的活动",
+          "试了几次才看到时间合适的",
+          "只想参加一类"
+        ]
+      },
+      {
+        "theme": "提交结果不明确/重复提交",
+        "feedback_rows": 19,
+        "ratio_of_feedback_rows": 17.0,
+        "unique_students": 18,
+        "ratio_of_feedback_students": 18.8,
+        "keywords": [
+          "不清楚原因",
+          "又试了一次",
+          "连点",
+          "连续点了两次",
+          "不确定到底有没有提交成功",
+          "卡住之后我又点了一次",
+          "提示内容有点难理解"
+        ]
+      },
+      {
+        "theme": "地点说明",
+        "feedback_rows": 5,
+        "ratio_of_feedback_rows": 4.5,
+        "unique_students": 5,
+        "ratio_of_feedback_students": 5.2,
+        "keywords": [
+          "地点说明"
+        ]
+      },
+      {
+        "theme": "时间冲突",
+        "feedback_rows": 4,
+        "ratio_of_feedback_rows": 3.6,
+        "unique_students": 4,
+        "ratio_of_feedback_students": 4.2,
+        "keywords": [
+          "时间和课程冲突"
+        ]
+      }
+    ],
+    "multi_label_rows": 0,
+    "note": "反馈是非结构化、非随机样本：112 条反馈来自 96 名学生，只能说明“反馈样本中有人提到”，不能外推为全体用户比例。主题按关键词规则编码，一条反馈可命中多个主题。"
+  },
+  "performance": {
+    "registration_api_log_events": 485,
+    "log_event_counts": {
+      "SLOW_REQUEST": 250,
+      "REQUEST_DONE": 178,
+      "E409": 41,
+      "E500": 16
+    },
+    "slow_request_count": 250,
+    "slow_request_ratio_of_logged_events": 51.5,
+    "slow_requests_by_activity": {
+      "A015": 61,
+      "A001": 55,
+      "A005": 47,
+      "A021": 46,
+      "A010": 41
+    },
+    "error_events_by_activity": {
+      "A010": 14,
+      "A001": 10,
+      "A005": 8,
+      "A015": 5,
+      "A021": 4,
+      "A004": 2,
+      "A018": 2,
+      "A022": 2,
+      "A011": 2,
+      "A012": 2,
+      "A013": 1,
+      "A002": 1,
+      "A003": 1,
+      "A016": 1,
+      "A009": 1,
+      "A023": 1
+    },
+    "slow_request_latency_ms": {
+      "n": 250,
+      "mean": 1611.3,
+      "p50": 1560.0,
+      "p90": 1965.0,
+      "p95": 2134.0,
+      "p99": 2340.0,
+      "max": 2496.0
+    },
+    "note": "system_log 只记录慢请求、错误和部分完成事件，不是全量访问日志；全量耗时以 registration_log.latency_ms 为准，慢请求事件用于定位活动与时段。"
+  },
+  "conflict": {
+    "definition": "同一学生最终状态为“正式报名”的活动之间，开始时间相差不足 2 小时视为时间重叠。数据没有活动结束时间与课表，因此这是保守代理口径，不等于真实冲突时长。",
+    "students_with_confirmed": 418,
+    "students_with_multi_confirmed": 407,
+    "students_with_conflict": 164,
+    "conflict_ratio_of_multi_confirmed": 40.3,
+    "conflict_pairs": 227,
+    "top_activity_pairs": [
+      {
+        "activity_a": "A006",
+        "activity_b": "A016",
+        "students": 22
+      },
+      {
+        "activity_a": "A008",
+        "activity_b": "A012",
+        "students": 21
+      },
+      {
+        "activity_a": "A007",
+        "activity_b": "A011",
+        "students": 19
+      },
+      {
+        "activity_a": "A012",
+        "activity_b": "A022",
+        "students": 18
+      },
+      {
+        "activity_a": "A013",
+        "activity_b": "A017",
+        "students": 16
+      },
+      {
+        "activity_a": "A008",
+        "activity_b": "A022",
+        "students": 15
+      },
+      {
+        "activity_a": "A004",
+        "activity_b": "A014",
+        "students": 11
+      },
+      {
+        "activity_a": "A007",
+        "activity_b": "A021",
+        "students": 11
+      },
+      {
+        "activity_a": "A003",
+        "activity_b": "A017",
+        "students": 11
+      },
+      {
+        "activity_a": "A003",
+        "activity_b": "A013",
+        "students": 11
+      }
+    ],
+    "note": "反馈中另有 4 条提到“活动时间和课程冲突”，但数据包没有课表，无法量化课程冲突。"
+  },
+  "requirements": [
+    {
+      "id": "R1",
+      "name": "报名状态变化通知与状态时间线",
+      "evidence": [
+        "候补申请 876 条，其中 130 条在观测期内转正（14.8%），转正等待中位数 18.0 小时；观测结束时仍有 746 条候补未转正。",
+        "反馈样本中 33/112 条提到“不知道候补结果/需要自己查状态/隔两天才发现”。",
+        "行为数据中 293 个会话（20.7%）访问过报名状态页。"
+      ],
+      "decision": "保留并强化 V3.0 通知中心：候补转正、审核通过/未通过、关闭审核后的自动处理、活动下架均写入站内通知，“我的活动”增加状态筛选与“状态更新时间”。"
+    },
+    {
+      "id": "R2",
+      "name": "报名提交的确定性与幂等防重",
+      "evidence": [
+        "申请请求中 126 条为 duplicate（4.6%），126 条客户端重试请求全部为 duplicate；另有 41 条 capacity_conflict、16 条 server_error。",
+        "反馈样本中 19/112 条提到“不确定是否提交成功/页面卡住又点了一次/失败原因不清楚”。",
+        "报名请求整体 P95 耗时 1555.0 ms；开放后 10 分钟高峰窗口的 P95 为 1789.0 ms。"
+      ],
+      "decision": "提交按钮增加进行中状态与防重复点击；服务端按 request_token 幂等处理，重复提交返回同一报名状态；失败结果给出可理解的原因和重试入口，并回显报名回执编号。"
+    },
+    {
+      "id": "R3",
+      "name": "移动端可用性",
+      "evidence": [
+        "行为事件中移动端占 70.9%，桌面端 25.8%，平板端 3.1%。",
+        "报名页移动端占 74.9%，状态页移动端占 78.2%。"
+      ],
+      "decision": "增加移动端底部导航与响应式布局，详情页在窄屏下全屏展示，表格页可横向/折叠查看；桌面端保持原有侧边栏。"
+    },
+    {
+      "id": "R4",
+      "name": "发现与筛选效率",
+      "evidence": [
+        "反馈样本中 23/112 条提到标题相似、需要逐个打开、周末筛选困难或只想看一类活动。",
+        "行为数据中详情页访问 5414 次、列表页访问 5041 次，详情/列表 = 1.07；学生个人中位数列表 11 次、详情 12 次。"
+      ],
+      "decision": "活动广场增加“仅看有名额/仅看周末/按时间或剩余名额排序”，搜索扩展到主办方与活动介绍；活动卡片直接展示时间、地点、剩余名额与候补人数，减少打开详情才能判断的成本。"
+    },
+    {
+      "id": "R5",
+      "name": "供需失衡的教师端概览与备选推荐",
+      "evidence": [
+        "5 个供需比 ≥ 2.0 的活动只占总容量 10.3%，却获得 35.3% 的申请、87.9% 的候补；全部 250 条慢请求都集中在这些活动上。",
+        "供需比最高的活动：周末摄影工作坊(5.97), 桌游协作交流(5.78), 模拟面试训练营(5.0), 热门音乐交流会(4.62), 迎新校园导览(4.3)。"
+      ],
+      "decision": "教师端“活动管理”展示每个活动的报名申请、正式/候补/待审核结构与供需比，并给出“增加名额/加开场次”提示；学生端在满员活动详情中推荐同类且仍有余量的活动。"
+    },
+    {
+      "id": "R6",
+      "name": "报名时间冲突聚合提醒",
+      "evidence": [
+        "有 407 名学生最终正式报名了 ≥2 个活动，其中 164 名（40.3%）存在开始时间相差不足 2 小时的活动，共 227 对。",
+        "反馈样本中另有 4/112 条提到活动时间与课程冲突，但数据包没有课表，无法量化课程冲突。"
+      ],
+      "decision": "保留“我的活动”页的冲突聚合卡片，并在列表卡片上标出冲突个数；口径保持“开始时间相差 < 2 小时”。"
+    }
+  ],
+  "limitations": [
+    "数据是教师提供的 V2.0 模拟运行数据，不是本组 V3.0 的实际运行日志；结论只用于需求判断。",
+    "system_log 只覆盖部分业务请求（485/2878），不能据此计算全量错误率；错误率以 registration_log 为准。",
+    "feedback 是非结构化、非随机样本（112 条/96 人），只能作为线索，不能代表全体用户比例。",
+    "行为表不保证会话完整路径，漏斗按“会话中是否出现页面”统计，不代表严格步骤转化。",
+    "活动表没有结束时间、课表和签到数据，无法计算真实冲突时长、到场率或满意度评分。",
+    "候补转正等待时间受观测窗口截断影响（观测结束时仍有 746 条候补），不能解释为平均等待时间。"
+  ]
+}

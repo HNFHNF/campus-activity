@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="960" height="560" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">访问设备与移动端使用</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">全部行为事件中移动端 70.9%；报名页 74.9%、状态页 78.2%</text>
+<rect x="90.0" y="130.0" width="780.0" height="50.0" rx="8" fill="#eef3f9"/>
+<rect x="90.0" y="130.0" width="553.4" height="50.0" rx="0" fill="#ff3b30"/>
+<text x="366.7" y="161.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">移动端 70.9%</text>
+<rect x="643.4" y="130.0" width="201.0" height="50.0" rx="0" fill="#007aff"/>
+<text x="743.9" y="161.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">桌面端 25.8%</text>
+<rect x="844.4" y="130.0" width="24.0" height="50.0" rx="0" fill="#ff9500"/>
+<rect x="868.4" y="130.0" width="1.6" height="50.0" rx="0" fill="#8e8e93"/>
+<text x="48.0" y="240.0" font-size="16" fill="#1d3040" text-anchor="start" font-weight="700">各页面设备构成（占该页面访问次数）</text>
+<text x="90.0" y="290.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">列表页</text>
+<rect x="190.0" y="276.0" width="680.0" height="26.0" rx="4" fill="#eef3f9"/>
+<rect x="190.0" y="276.0" width="480.4" height="26.0" rx="4" fill="#ff3b30"/>
+<text x="200.0" y="294.0" font-size="11" fill="#ffffff" text-anchor="start" font-weight="700">移动端 3561/5041（70.6%）</text>
+<text x="90.0" y="348.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">详情页</text>
+<rect x="190.0" y="334.0" width="680.0" height="26.0" rx="4" fill="#eef3f9"/>
+<rect x="190.0" y="334.0" width="480.4" height="26.0" rx="4" fill="#ff3b30"/>
+<text x="200.0" y="352.0" font-size="11" fill="#ffffff" text-anchor="start" font-weight="700">移动端 3825/5414（70.7%）</text>
+<text x="90.0" y="406.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">报名页</text>
+<rect x="190.0" y="392.0" width="680.0" height="26.0" rx="4" fill="#eef3f9"/>
+<rect x="190.0" y="392.0" width="509.3" height="26.0" rx="4" fill="#ff3b30"/>
+<text x="200.0" y="410.0" font-size="11" fill="#ffffff" text-anchor="start" font-weight="700">移动端 188/251（74.9%）</text>
+<text x="90.0" y="464.0" font-size="12" fill="#425466" text-anchor="start" font-weight="normal">状态页</text>
+<rect x="190.0" y="450.0" width="680.0" height="26.0" rx="4" fill="#eef3f9"/>
+<rect x="190.0" y="450.0" width="531.5" height="26.0" rx="4" fill="#ff3b30"/>
+<text x="200.0" y="468.0" font-size="11" fill="#ffffff" text-anchor="start" font-weight="700">移动端 229/293（78.2%）</text>
+<text x="48.0" y="540.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">数据来源：user_behavior.csv 去重后的 10999 条事件、1416 个会话；移动端占比高，但 V2.0 在窄屏下隐藏侧边栏且未提供替代导航。</text>
+</g></svg>

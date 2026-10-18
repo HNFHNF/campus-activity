@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="620" viewBox="0 0 960 620">
+<rect width="960" height="620" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">匿名反馈主题分布（可多标签）</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">112 条反馈 / 96 名学生；反馈为非随机样本，不能外推为全体用户比例</text>
+<text x="248.0" y="149.0" font-size="12" fill="#425466" text-anchor="end" font-weight="normal">状态变化不可感知/需要自己查</text>
+<rect x="260.0" y="125.0" width="600.0" height="34.0" rx="6" fill="#ff3b30"/>
+<text x="870.0" y="148.0" font-size="12" fill="#1d3040" text-anchor="start" font-weight="700">33 条（29.5%）</text>
+<text x="248.0" y="215.0" font-size="12" fill="#425466" text-anchor="end" font-weight="normal">正向评价</text>
+<rect x="260.0" y="191.0" width="490.9" height="34.0" rx="6" fill="#ff9500"/>
+<text x="760.9" y="214.0" font-size="12" fill="#1d3040" text-anchor="start" font-weight="700">27 条（24.1%）</text>
+<text x="248.0" y="281.0" font-size="12" fill="#425466" text-anchor="end" font-weight="normal">发现与筛选效率</text>
+<rect x="260.0" y="257.0" width="418.2" height="34.0" rx="6" fill="#af52de"/>
+<text x="688.2" y="280.0" font-size="12" fill="#1d3040" text-anchor="start" font-weight="700">23 条（20.5%）</text>
+<text x="248.0" y="347.0" font-size="12" fill="#425466" text-anchor="end" font-weight="normal">提交结果不明确/重复提交</text>
+<rect x="260.0" y="323.0" width="345.5" height="34.0" rx="6" fill="#007aff"/>
+<text x="615.5" y="346.0" font-size="12" fill="#1d3040" text-anchor="start" font-weight="700">19 条（17.0%）</text>
+<text x="248.0" y="413.0" font-size="12" fill="#425466" text-anchor="end" font-weight="normal">地点说明</text>
+<rect x="260.0" y="389.0" width="90.9" height="34.0" rx="6" fill="#5ac8fa"/>
+<text x="360.9" y="412.0" font-size="12" fill="#1d3040" text-anchor="start" font-weight="700">5 条（4.5%）</text>
+<text x="248.0" y="479.0" font-size="12" fill="#425466" text-anchor="end" font-weight="normal">时间冲突</text>
+<rect x="260.0" y="455.0" width="72.7" height="34.0" rx="6" fill="#34c759"/>
+<text x="342.7" y="478.0" font-size="12" fill="#1d3040" text-anchor="start" font-weight="700">4 条（3.6%）</text>
+<text x="48.0" y="575.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">编码规则：按关键词命中，一条反馈可同时命中多个主题；完整关键词见 tools/analyze.py。</text>
+<text x="48.0" y="598.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">说明：反馈只能说明“反馈样本中有人提到”，不能等同于 29.5% 的学生都遇到该问题。</text>
+</g></svg>

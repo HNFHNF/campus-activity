@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560">
+<rect width="960" height="560" fill="#ffffff"/>
+<g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, Segoe UI, sans-serif">
+<text x="48.0" y="58.0" font-size="24" fill="#1d3040" text-anchor="start" font-weight="700">最终报名状态与时间重叠</text>
+<text x="48.0" y="86.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">按时间回放 registration_log + waitlist_log；冲突口径为开始时间相差 &lt; 2 小时</text>
+<text x="78.0" y="168.0" font-size="13" fill="#425466" text-anchor="end" font-weight="normal">正式报名</text>
+<rect x="90.0" y="140.0" width="360.0" height="44.0" rx="8" fill="#34c759"/>
+<text x="104.0" y="168.0" font-size="13" fill="#ffffff" text-anchor="start" font-weight="700">1689 人</text>
+<text x="78.0" y="258.0" font-size="13" fill="#425466" text-anchor="end" font-weight="normal">候补中</text>
+<rect x="90.0" y="230.0" width="159.0" height="44.0" rx="8" fill="#007aff"/>
+<text x="104.0" y="258.0" font-size="13" fill="#ffffff" text-anchor="start" font-weight="700">746 人</text>
+<text x="560.0" y="170.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">已报名 ≥ 2 个活动的学生</text>
+<text x="560.0" y="205.0" font-size="30" fill="#1d3040" text-anchor="start" font-weight="700">407 人</text>
+<text x="560.0" y="245.0" font-size="13" fill="#7b8794" text-anchor="start" font-weight="normal">其中存在时间重叠</text>
+<text x="560.0" y="280.0" font-size="24" fill="#ff3b30" text-anchor="start" font-weight="700">164 人（40.3%）</text>
+<text x="560.0" y="322.0" font-size="13" fill="#425466" text-anchor="start" font-weight="normal">冲突活动对：227 对</text>
+<text x="48.0" y="470.0" font-size="11" fill="#7b8794" text-anchor="start" font-weight="normal">限制：活动表没有结束时间、课表与签到数据，无法计算真实冲突时长、到场率或满意度。</text>
+</g></svg>
