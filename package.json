@@ -1,13 +1,19 @@
 {
   "name": "campus-activity-manager",
   "private": true,
-  "version": "0.0.0",
-  "description": "校园活动管理系统 V1.0 - 学生浏览报名、教师发布管理",
+  "version": "3.0.0",
+  "description": "校园活动管理系统 V3.0 - 学生浏览报名、教师发布管理、报名状态通知",
   "author": "CampusEvents Team",
   "type": "module",
   "scripts": {
     "start": "electron-vite dev",
     "dev": "electron-vite dev",
+    "web": "node scripts/web-dev.mjs",
+    "web:build": "vite build --config vite.web.config.ts && esbuild server/index.ts --bundle --platform=node --format=esm --target=node20 --sourcemap --external:sql.js --external:nodemailer --outfile=out/web/server.mjs",
+    "web:start": "node out/web/server.mjs",
+    "verify": "node scripts/verify.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
     "typecheck": "vue-tsc --noEmit",
     "build": "npm run typecheck && electron-vite build && electron-builder",
     "build:pack": "npm run typecheck && electron-vite build && electron-builder --dir",
@@ -25,9 +31,15 @@
     "electron": "^30.5.1",
     "electron-builder": "^24.13.3",
     "electron-vite": "^5.0.0",
+    "esbuild": "^0.25.12",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vue-tsc": "^2.0.26"
   },
-  "main": "out/main/main.js"
+  "main": "out/main/main.js",
+  "allowScripts": {
+    "electron@30.5.1": true,
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.12": true
+  }
 }

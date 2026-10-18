@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useStore } from '../composables/useStore'
-import type { UserRole } from '../types'
+import { invoke } from '../services/bridge'
+import type { User, UserRole } from '../types'
 
 const { login, state, loadActivities } = useStore()
 
@@ -35,7 +36,7 @@ const activityCount = computed(() => state.activities.length)
 onMounted(async () => {
   try {
     await loadActivities()
-    const stats = await window.ipcRenderer.invoke('stats:public') as { registeredStudents?: number }
+    const stats = await invoke<{ registeredStudents?: number }>('stats:public')
     registeredStudents.value = Number(stats?.registeredStudents ?? 0)
   } catch {
     registeredStudents.value = 0
@@ -129,16 +130,16 @@ async function submit() {
   isSubmitting.value = true
   try {
     if (isLoginMode.value) {
-      const user = await window.ipcRenderer.invoke('auth:login', {
+      const result = await invoke<{ user: User; token: string }>('auth:login', {
         account,
         password: password.value,
         role: role.value
       })
-      await login(user)
+      await login(result.user, result.token)
       studentPassword.value = ''
       teacherPassword.value = ''
     } else {
-      await window.ipcRenderer.invoke('auth:register', {
+      await invoke('auth:register', {
         account,
         password: password.value,
         name: name.value.trim(),
@@ -161,11 +162,15 @@ async function submit() {
         ? '该用户不存在'
       : message.includes('密码错误')
         ? '密码错误'
-        : message.includes('__dirname') || message.includes('数据库暂时不可用')
-          ? '数据库暂时不可用，请重启软件后重试'
-          : isLoginMode.value
-            ? '登录失败，请检查账号和密码'
-            : (message || '注册失败，请稍后重试')
+        : message.includes('账号已停用')
+          ? message
+        : message.includes('无法连接') || message.includes('登录状态已失效') || message.includes('请求失败')
+          ? message
+          : message.includes('__dirname') || message.includes('数据库暂时不可用')
+            ? '数据库暂时不可用，请重启软件后重试'
+            : isLoginMode.value
+              ? (message || '登录失败，请检查账号和密码')
+              : (message || '注册失败，请稍后重试')
     isSubmitting.value = false
     return
   }
@@ -175,8 +180,8 @@ function sendRegistrationCode() {
   if (registrationSending.value || registrationCooldown.value > 0) return
   registrationSending.value = true
   authError.value = ''
-  window.ipcRenderer.invoke('auth:send-registration-code', { account: studentAccount.value.trim(), email: studentEmail.value.trim() })
-    .then((result: { maskedEmail?: string }) => {
+  invoke<{ maskedEmail?: string }>('auth:send-registration-code', { account: studentAccount.value.trim(), email: studentEmail.value.trim() })
+    .then((result) => {
       authError.value = result?.maskedEmail ? `验证码已发送至 ${result.maskedEmail}` : '验证码已发送，请查收 QQ 邮箱'
       registrationCooldown.value = 60
       registrationCooldownTimer = setInterval(() => {
@@ -200,8 +205,8 @@ function sendResetCode() {
     return
   }
   resetSubmitting.value = true
-  window.ipcRenderer.invoke('auth:send-reset-code', { account })
-    .then((result: { maskedEmail?: string }) => {
+  invoke<{ maskedEmail?: string }>('auth:send-reset-code', { account })
+    .then((result) => {
       resetCodeSent.value = true
       authError.value = result?.maskedEmail ? `验证码已发送至 ${result.maskedEmail}` : '验证码已发送，请查收 QQ 邮箱'
       resetCooldown.value = 60
@@ -228,7 +233,7 @@ async function submitReset() {
   }
   resetSubmitting.value = true
   try {
-    await window.ipcRenderer.invoke('auth:reset-password', {
+    await invoke('auth:reset-password', {
       account: resetAccount.value.trim(),
       code: resetCode.value.trim(),
       newPassword: resetPassword.value
@@ -251,16 +256,17 @@ async function submitReset() {
       <div class="brand">CampusEvents</div>
       <div class="hero-copy">
         <h1>发现校园精彩<br />参与每一次成长</h1>
-        <p>校园活动管理系统 V1.0 为学生和组织教师搭建桥梁，让活动发现、报名与管理变得简单、高效、有序。</p>
+        <p>校园活动管理系统 V3.0 为学生和组织教师搭建桥梁：活动发现、报名与审核更简单，状态变化会主动通知，手机上也能顺畅使用。</p>
       </div>
       <div class="stats">
         <div class="stat"><strong>{{ activityCount }}</strong><span>活动总数</span></div>
         <div class="stat"><strong>{{ registeredStudents ?? '—' }}</strong><span>注册学生</span></div>
-        <div class="stat"><strong>10</strong><span>组织教师</span></div>
+        <div class="stat"><strong>5</strong><span>活动类别</span></div>
       </div>
     </div>
     <div class="auth-form-panel">
       <div class="auth-box">
+        <div class="mobile-brand">CampusEvents <span>V3.0</span></div>
         <h2>{{ isForgotMode ? '找回密码' : (isLoginMode ? '欢迎回来' : '创建账号') }}</h2>
         <p class="subtitle">{{ isForgotMode ? '通过 QQ 邮箱验证码安全重置密码' : (isLoginMode ? '登录 CampusEvents 继续你的校园旅程' : '注册 CampusEvents 开启校园活动新体验') }}</p>
 
@@ -274,7 +280,7 @@ async function submitReset() {
           <label class="role-option" :class="{ active: role === 'teacher' }" @click="selectRole('teacher')">
             <input type="radio" v-model="role" value="teacher" />
             <div class="icon">🍎</div>
-            <div class="title">教师</div>
+            <div class="title">教师 / 管理员</div>
             <div class="desc">发布与管理活动</div>
           </label>
         </div>
@@ -422,6 +428,23 @@ async function submitReset() {
   max-width: 420px;
 }
 
+.mobile-brand {
+  display: none;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--brand-700);
+  margin-bottom: 22px;
+}
+
+.mobile-brand span {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: var(--brand-500);
+}
+
 .auth-box h2 {
   font-size: 1.9rem;
   font-weight: 700;
@@ -513,5 +536,7 @@ async function submitReset() {
 @media (max-width: 980px) {
   .auth-screen { grid-template-columns: 1fr; }
   .auth-visual { display: none; }
+  .auth-form-panel { padding: 28px 20px; align-items: flex-start; }
+  .mobile-brand { display: flex; }
 }
 </style>

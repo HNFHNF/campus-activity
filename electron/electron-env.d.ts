@@ -25,5 +25,6 @@ declare namespace NodeJS {
 
 // Used in Renderer process, expose in `preload.ts`
 interface Window {
-  ipcRenderer: import('electron').IpcRenderer
+  /** Electron 窗口里由 preload 注入；浏览器版本中为 undefined */
+  ipcRenderer?: import('electron').IpcRenderer
 }

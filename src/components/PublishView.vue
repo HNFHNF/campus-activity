@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useStore } from '../composables/useStore'
+import { useStore, categories } from '../composables/useStore'
 import type { ActivityCategory } from '../types'
 
 const { state, publishActivity, updateActivity, switchView, showToast, cancelEditActivity } = useStore()
 const editingActivity = computed(() => state.editingActivity)
 
-const categoryList: { key: ActivityCategory; label: string }[] = [
-  { key: 'academic', label: '学术讲座' },
-  { key: 'culture', label: '文化艺术' },
-  { key: 'sports', label: '体育运动' },
-  { key: 'volunteer', label: '志愿服务' },
-  { key: 'club', label: '社团活动' }
-]
+const categoryList = (Object.entries(categories) as Array<[ActivityCategory, { label: string }]>)
+  .map(([key, value]) => ({ key, label: value.label }))
+
+const nowLocal = (() => {
+  const date = new Date()
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+})()
 
 const title = ref('')
 const category = ref<ActivityCategory>('academic')
@@ -23,6 +24,8 @@ const location = ref('')
 const capacity = ref(50)
 const organizer = ref(state.currentUser?.name ? `${state.currentUser.name} 组织` : '校团委')
 const icon = ref('🎯')
+const reviewEnabled = ref(false)
+const submitting = ref(false)
 
 watch(editingActivity, (activity) => {
   if (!activity) return
@@ -35,34 +38,12 @@ watch(editingActivity, (activity) => {
   capacity.value = activity.capacity
   organizer.value = activity.organizer
   icon.value = activity.icon
+  reviewEnabled.value = activity.reviewEnabled
 }, { immediate: true })
 
 const iconOptions = ['🎯', '🎓', '🎤', '🏃', '🏮', '🤝', '📷', '🤖', '🎸', '🏀', '🎨', '📚']
 
-async function submit() {
-  if (!title.value.trim() || !desc.value.trim() || !time.value || !location.value.trim()) {
-    showToast('请填写完整活动信息')
-    return
-  }
-  try {
-    const payload = {
-      title: title.value.trim(),
-      category: category.value,
-      desc: desc.value.trim(),
-      time: time.value,
-      deadline: deadline.value || time.value,
-      location: location.value.trim(),
-      capacity: Math.max(1, capacity.value),
-      organizer: organizer.value.trim(),
-      icon: icon.value,
-      teacherId: state.currentUser!.id
-    }
-    if (editingActivity.value) await updateActivity({ ...editingActivity.value, ...payload })
-    else await publishActivity(payload)
-  } catch {
-    showToast(editingActivity.value ? '保存失败，请稍后重试' : '发布失败，请稍后重试')
-    return
-  }
+function resetForm() {
   title.value = ''
   desc.value = ''
   time.value = ''
@@ -71,6 +52,47 @@ async function submit() {
   capacity.value = 50
   organizer.value = state.currentUser?.name ? `${state.currentUser.name} 组织` : '校团委'
   icon.value = '🎯'
+  reviewEnabled.value = false
+}
+
+async function submit() {
+  if (submitting.value) return
+  if (!title.value.trim() || !desc.value.trim() || !time.value || !location.value.trim()) {
+    showToast('请填写完整活动信息')
+    return
+  }
+  if (!deadline.value) {
+    showToast('请填写报名截止时间')
+    return
+  }
+  if (deadline.value > time.value) {
+    showToast('报名截止时间不能晚于活动开始时间')
+    return
+  }
+  submitting.value = true
+  try {
+    const payload = {
+      title: title.value.trim(),
+      category: category.value,
+      desc: desc.value.trim(),
+      time: time.value,
+      deadline: deadline.value,
+      location: location.value.trim(),
+      capacity: Math.max(1, Math.floor(capacity.value) || 1),
+      organizer: organizer.value.trim(),
+      icon: icon.value,
+      reviewEnabled: reviewEnabled.value,
+      teacherId: state.currentUser!.id
+    }
+    if (editingActivity.value) await updateActivity({ ...editingActivity.value, ...payload })
+    else await publishActivity(payload)
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : (editingActivity.value ? '保存失败，请稍后重试' : '发布失败，请稍后重试'))
+    return
+  } finally {
+    submitting.value = false
+  }
+  resetForm()
   cancelEditActivity()
   switchView('manage')
 }
@@ -115,12 +137,12 @@ async function submit() {
 
         <div class="form-group">
           <label class="label">活动时间</label>
-          <input type="datetime-local" class="input" v-model="time" required />
+          <input type="datetime-local" class="input" v-model="time" :min="nowLocal" required />
         </div>
 
         <div class="form-group">
           <label class="label">报名截止</label>
-          <input type="datetime-local" class="input" v-model="deadline" />
+          <input type="datetime-local" class="input" v-model="deadline" :min="nowLocal" required />
         </div>
 
         <div class="form-group">
@@ -142,11 +164,19 @@ async function submit() {
           <label class="label">活动介绍</label>
           <textarea class="input textarea" v-model="desc" rows="5" placeholder="介绍活动内容、流程、注意事项..." required></textarea>
         </div>
+
+        <div class="form-group wide">
+          <label class="label">报名审核</label>
+          <label class="switch-row">
+            <input type="checkbox" v-model="reviewEnabled" />
+            <span>开启报名审核：学生报名后先进入待审核，由你决定通过或未通过；通过时按当时的剩余名额转为正式或候补。不开启时有名额直接正式、满员自动进入候补队列。</span>
+          </label>
+        </div>
       </div>
 
       <div class="actions">
-        <button type="button" class="btn btn-secondary" @click="cancelEditActivity(); switchView('manage')">取消</button>
-        <button type="submit" class="btn btn-primary">{{ editingActivity ? '保存修改' : '发布活动' }}</button>
+        <button type="button" class="btn btn-secondary" :disabled="submitting" @click="cancelEditActivity(); switchView('manage')">取消</button>
+        <button type="submit" class="btn btn-primary" :disabled="submitting">{{ submitting ? '保存中…' : (editingActivity ? '保存修改' : '发布活动') }}</button>
       </div>
     </form>
   </section>
@@ -227,5 +257,20 @@ async function submit() {
 @media (max-width: 640px) {
   .form-grid { grid-template-columns: 1fr; }
   .publish-card { padding: 24px; }
+}
+.switch-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-muted, #667085);
+}
+
+.switch-row input {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  flex: none;
 }
 </style>

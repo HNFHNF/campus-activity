@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from './composables/useStore'
 import AuthScreen from './components/AuthScreen.vue'
 import Sidebar from './components/Sidebar.vue'
@@ -8,18 +8,26 @@ import MyActivitiesView from './components/MyActivitiesView.vue'
 import PublishView from './components/PublishView.vue'
 import ManageView from './components/ManageView.vue'
 import StudentManageView from './components/StudentManageView.vue'
+import GovernanceView from './components/GovernanceView.vue'
+import NotificationsView from './components/NotificationsView.vue'
+import MobileNav from './components/MobileNav.vue'
 import ActivityDetail from './components/ActivityDetail.vue'
 import type { Activity } from './types'
 
 const { state, isLoggedIn, toast } = useStore()
-const selectedActivity = ref<Activity | null>(null)
+const selectedActivityId = ref<number | null>(null)
+// 从全局列表里按 id 取当前活动，报名后人数/候补数刷新时详情页能同步更新
+const selectedActivity = computed(() => {
+  if (selectedActivityId.value === null) return null
+  return state.activities.find(activity => activity.id === selectedActivityId.value) ?? null
+})
 
 function showDetail(activity: Activity) {
-  selectedActivity.value = activity
+  selectedActivityId.value = activity.id
 }
 
 function closeDetail() {
-  selectedActivity.value = null
+  selectedActivityId.value = null
 }
 </script>
 
@@ -32,9 +40,12 @@ function closeDetail() {
       <MyActivitiesView v-else-if="state.currentView === 'myActivities'" :on-show-detail="showDetail" />
       <PublishView v-else-if="state.currentView === 'publish'" />
       <ManageView v-else-if="state.currentView === 'manage'" :on-show-detail="showDetail" />
-      <StudentManageView v-else-if="state.currentView === 'students'" />
+      <StudentManageView v-else-if="state.currentView === 'accounts'" />
+      <GovernanceView v-else-if="state.currentView === 'governance'" />
+      <NotificationsView v-else-if="state.currentView === 'notifications'" />
     </main>
-    <ActivityDetail :activity="selectedActivity" @close="closeDetail" />
-    <div class="toast" :class="{ show: toast }">{{ toast }}</div>
+    <MobileNav />
+    <ActivityDetail :activity="selectedActivity" @close="closeDetail" @select="showDetail" />
   </div>
+  <div class="toast" :class="{ show: toast }">{{ toast }}</div>
 </template>

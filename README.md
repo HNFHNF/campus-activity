@@ -1,6 +1,47 @@
-# 校园活动管理系统
+# 校园活动管理系统 V3.0
 
-这是一个基于 Vue 3、TypeScript、Electron 30 和 electron-vite 的桌面应用。学生可以浏览和报名活动，教师可以发布和管理活动；账号数据保存在本机用户目录的加密数据库中。
+基于 Vue 3、TypeScript、Electron 30、electron-vite 与 sql.js 的校园活动管理系统。学生可以浏览、报名、候补和查看报名状态，教师可以发布活动、按活动开启审核、查看报名结构与供需情况，管理员负责学生账号启停与违规活动治理。
+
+V2.0 已具备浏览、详情、报名、满员候补、报名审核、取消递补、教师发布与管理员治理。V3.0 依据教师提供的 V2.0 模拟运行数据（`项目数据/`，不是本系统的实际日志）做了一次增量迭代，重点是**让报名结果确定、让状态变化可见、让供需与冲突可判断**：
+
+1. **报名状态通知与状态时间线**：候补递补、审核通过 / 未通过、关闭审核后的自动处理、活动下架都会写入站内通知；侧边栏 / 移动端“通知中心”显示未读数；“我的活动”和详情页显示状态更新时间。
+2. **报名提交确定性与幂等防重**：前端提交中状态与防重复点击；每次提交携带 `requestId`，服务端按 `request_token` 幂等，重复点击 / 网络重试返回同一报名状态，并显示回执编号与失败原因。
+3. **移动端导航与响应式布局**：≤980px 显示底部导航（广场 / 我的 / 通知 / 退出等），详情页窄屏全屏，表格页可横向滚动；桌面端保留侧边栏。
+4. **发现与筛选效率**：仅看有名额、仅看周末、按时间 / 剩余名额 / 报名截止排序；搜索扩展到主办方与活动介绍；卡片直接显示时间、截止、余量、候补人数与冲突标记。
+5. **教师端供需概览**：每个活动显示申请 / 正式 / 候补 / 待审核结构与供需比，并列出需要优先关注的活动；学生端在满员时推荐同类且仍有余量的活动。
+6. **时间冲突聚合提醒**：“我的活动”常驻冲突卡片，活动卡片标记冲突，口径为开始时间相差 < 2 小时。
+
+## 数据依据（来自 `项目数据/`）
+
+| 发现 | 数字 | 对应改动 |
+|---|---|---|
+| 候补多、转正少、等待长 | 876 条候补，130 条转正（14.8%），观测结束仍 746 条；等待中位 18.0 小时 | 通知中心 + 状态时间线 |
+| 重复提交/结果不确定 | 126 条 duplicate（apply 的 4.6%），另有 41 条名额冲突、16 条服务错误；反馈 19/112 条 | 幂等提交 + 回执 + 失败原因 |
+| 移动端为主 | 移动端 70.9%，报名页 74.9%，状态页 78.2% | 底部导航 + 响应式 |
+| 需要反复打开详情 | 详情/列表 = 1.07，每生中位数列表 11 / 详情 12 次；反馈 23/112 条 | 筛选、排序、卡片信息、同类备选 |
+| 供需失衡 | 5 个热门活动占 10.3% 容量、35.3% 去重申请、87.9% 最终候补、100% 慢请求 | 教师供需概览 + 学生备选推荐 |
+| 时间重叠 | 407 名多活动报名者中 164 名（40.3%）存在 < 2 小时重叠，共 227 对 | 冲突聚合提醒 |
+
+> 这些数据是教师提供的模拟运行样本，不是本系统的实际日志；反馈是非随机样本，比例不能外推为全体用户比例。完整分析见交付包 `analysis/数据分析报告.md`（仓库镜像位于 `docs/analysis/`）。
+
+## 角色与权限
+
+| 角色 | 职责边界 |
+| --- | --- |
+| 学生 | 浏览活动、报名、登记候补、查看报名状态与候补序号、取消报名或退出候补；只能操作自己的报名；接收站内通知 |
+| 组织教师 | 发布、修改、删除自己负责的活动；按活动决定是否开启审核，并审核本人活动下的申请；查看报名结构与供需概览 |
+| 管理员 | 只负责学生账号启停与违规活动治理（下架 / 恢复）；不参与活动发布与审核 |
+
+内置账号（演示用）：组织教师 / 管理员 `admin` / `123456`，系统管理员 `root` / `123456`。学生账号通过注册流程创建，需要 QQ 邮箱验证码。登录后服务端发放会话令牌，所有写操作都会校验操作者身份与权限。
+
+## 报名与候补规则
+
+- 报名状态对学生始终可见：**正式报名 / 候补中（含队列序号）/ 待审核 / 未通过**。
+- 活动**未开启审核**：有名额直接转为正式；满员进入候补，按申请时间排序。
+- 活动**开启审核**：报名先进入待审核，教师通过时按当时剩余名额转正式或候补；未通过可重新申请。
+- 正式报名者取消后名额立即释放，按顺序自动递补给最靠前的候补，并给递补者发通知。
+- 活动名额增加时同样按候补顺序递补；关闭审核时，待审核申请按申请先后自动转为正式或候补。
+- 管理员下架的活动不在学生端展示、不能报名；已报名学生仍能看到活动与下架原因，并收到通知。
 
 ## 开发
 
@@ -8,29 +49,63 @@
 
 ```bash
 npm install
-npm start
+npm start          # Electron 开发模式
 ```
 
-`npm start` 和 `npm run dev` 都会启动 electron-vite 开发模式，包含渲染进程热更新以及主进程/预加载脚本的自动重建。
+`npm start` 和 `npm run dev` 都会启动 electron-vite 开发模式，包含渲染进程热更新以及主进程 / 预加载脚本自动重建。
+
+## 验证
+
+```bash
+npm run typecheck  # vue-tsc
+npm run web:build  # 构建网页版 renderer + server
+npm run verify     # 数据库层端到端：幂等、通知、递补、审核、概览、回归
+```
+
+`npm run verify` 使用独立的 `.verify/data` 加密数据库，不会影响默认数据。它覆盖：审核制报名、重复提交幂等、审核结果、候补递补、通知已读、关闭审核自动处理、活动下架、教师概览、活动列表候补计数、状态更新时间与原有接口回归。
 
 ## 构建
 
 ```bash
 npm run typecheck
-npm run build
-```
-
-`npm run build` 会先进行 Vue/TypeScript 类型检查，再将三个 Electron 进程构建到 `out/`，最后使用 electron-builder 生成当前平台的安装包。只生成未安装的目录包可以运行 `npm run build:pack`。
-
-生产预览使用：
-
-```bash
+npm run build      # 类型检查 + Electron 三进程构建 + electron-builder
+npm run build:pack # 只生成未安装的目录包
 npm run preview
 ```
 
+## 网页版（浏览器中打开）
+
+前端会自动判断运行环境：Electron 窗口里走 IPC，浏览器里走本机 HTTP 接口（通道、参数和错误提示一致）。
+
+开发模式（同时启动本地接口与前端热更新）：
+
+```bash
+npm run web
+```
+
+浏览器打开 `http://127.0.0.1:5180`。接口服务只监听本机 `127.0.0.1:5174`，不对局域网或外网开放；可用 `WEB_PORT`（前端）和 `PORT`（接口）改端口。
+
+生产版本：
+
+```bash
+npm run web:build
+npm run web:start  # http://127.0.0.1:5174
+```
+
+浏览器版本的数据默认存放在项目根目录 `data/`（已加入 `.gitignore`），与桌面版的 `%APPDATA%\campus-activity-manager\` 相互独立。普通 Node 进程拿不到 Windows 系统密钥保护服务，`data/campus-events.key` 以明文保存，因此网页版定位为本机自用；桌面版仍使用系统 DPAPI 加密该密钥。
+
+## 演示数据与截图
+
+```bash
+npm run seed:demo     # 在 .screenshots/demo 写入演示库，不覆盖默认数据
+npm run screenshots   # 构建（如缺失）+ 演示库 + 启动本地服务 + Edge/Chrome 截图
+```
+
+截图输出到分析目录的 `screenshots/`（交付包为 `analysis/screenshots/`，扁平仓库布局为 `docs/analysis/screenshots/`）。`seed:demo` 的演示账号为 `2025061010030119` / `123456`。
+
 ## 加密数据库恢复
 
-如果程序曾经使用其他 Windows 用户或管理员权限运行，旧的 `campus-events.key` 可能无法被当前用户解密。关闭所有应用窗口后，将下面目录中的 `campus-events.db.enc` 和 `campus-events.key` 改名为带 `.backup` 后缀的文件，再重新启动即可创建新的本机账号库：
+如果程序曾使用其他 Windows 用户或管理员权限运行，旧的 `campus-events.key` 可能无法被当前用户解密。关闭所有应用窗口后，将下面目录中的 `campus-events.db.enc` 和 `campus-events.key` 改名为带 `.backup` 后缀的文件，再重新启动即可创建新的本机账号库：
 
 `%APPDATA%\campus-activity-manager\`
 
@@ -40,11 +115,17 @@ npm run preview
 
 - `electron/main.ts`：Electron 主进程、窗口和 IPC 处理器。
 - `electron/preload.ts`：通过 `contextBridge` 暴露给渲染进程的安全 API。
-- `electron/database.ts`：本机加密数据库和认证逻辑。
+- `electron/database.ts`：本机加密数据库、报名 / 候补 / 审核规则与通知。
+- `electron/channels.ts`：IPC 与网页版 API 共用的业务通道和权限判断。
+- `server/index.ts`：网页版本地 API 服务。
 - `src/`：Vue 渲染进程界面。
-- `electron.vite.config.ts`：electron-vite 的 main、preload、renderer 三进程配置。
+- `src/composables/useStore.ts`：前端状态、筛选、冲突、幂等提交与提示。
+- `src/composables/useNavigation.ts`：桌面 / 移动端导航的唯一数据源。
+- `tools/verify-v3.ts`、`scripts/verify.mjs`：端到端验证。
+- `tools/seed-demo.ts`、`tools/shots.mjs`、`scripts/screenshots.mjs`：演示数据与截图。
+- `electron.vite.config.ts`、`vite.web.config.ts`：Electron 与网页版构建配置。
 
-构建结果位于 `out/main`、`out/preload` 和 `out/renderer`，electron-builder 的配置位于 `electron-builder.json5`。
+构建结果位于 `out/main`、`out/preload`、`out/renderer` 与 `out/web`；electron-builder 配置位于 `electron-builder.json5`。
 
 ## QQ 邮箱密码重置
 

@@ -3,8 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import type { StudentRecord } from '../types'
 import { formatDate } from '../utils/format'
 import { useStore } from '../composables/useStore'
+import { invoke } from '../services/bridge'
 
-const { showToast } = useStore()
+const { showToast, isAdmin } = useStore()
 const students = ref<StudentRecord[]>([])
 const selected = ref<StudentRecord | null>(null)
 const name = ref('')
@@ -19,13 +20,14 @@ const filteredStudents = computed(() => {
   return students.value.filter(student => `${student.account} ${student.name} ${student.email}`.toLowerCase().includes(query))
 })
 
-const activeCount = computed(() => students.value.length)
+const activeCount = computed(() => students.value.filter(student => student.status !== 'disabled').length)
+const disabledCount = computed(() => students.value.filter(student => student.status === 'disabled').length)
 const qqCount = computed(() => students.value.filter(student => student.email.endsWith('@qq.com')).length)
 
 async function loadStudents() {
   loading.value = true
   try {
-    const result = await window.ipcRenderer.invoke('students:list') as StudentRecord[]
+    const result = await invoke<StudentRecord[]>('students:list')
     students.value = Array.isArray(result) ? result : []
   } catch {
     showToast('学生数据加载失败，请稍后重试')
@@ -49,13 +51,13 @@ function closeEditor() {
 async function saveStudent() {
   if (!selected.value) return
   try {
-    const result = await window.ipcRenderer.invoke('students:update', { id: selected.value.id, name: name.value, email: email.value }) as { name: string; email: string }
+    const result = await invoke<{ name: string; email: string }>('students:update', { id: selected.value.id, name: name.value, email: email.value })
     Object.assign(selected.value, result)
     const item = students.value.find(student => student.id === selected.value?.id)
     if (item) Object.assign(item, result)
     showToast('学生资料已更新')
     if (newPassword.value) {
-      await window.ipcRenderer.invoke('students:reset-password', { id: selected.value.id, password: newPassword.value })
+      await invoke('students:reset-password', { id: selected.value.id, password: newPassword.value })
       showToast('学生资料和密码已更新')
     }
     closeEditor()
@@ -67,12 +69,24 @@ async function saveStudent() {
 async function deleteStudent(student: StudentRecord) {
   if (!confirm(`确定删除学生账号“${student.account}”吗？此操作不可撤销。`)) return
   try {
-    await window.ipcRenderer.invoke('students:delete', student.id)
+    await invoke('students:delete', student.id)
     students.value = students.value.filter(item => item.id !== student.id)
     if (selected.value?.id === student.id) closeEditor()
     showToast('学生账号已删除')
   } catch {
     showToast('删除失败，请稍后重试')
+  }
+}
+
+async function toggleStatus(student: StudentRecord) {
+  const next = student.status === 'disabled' ? 'active' : 'disabled'
+  if (next === 'disabled' && !confirm(`确定停用账号“${student.account}”吗？停用后该学生无法登录和报名。`)) return
+  try {
+    await invoke('admin:set-account-status', { account: student.account, status: next })
+    student.status = next
+    showToast(next === 'disabled' ? '账号已停用' : '账号已启用')
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : '操作失败，请稍后重试')
   }
 }
 
@@ -84,16 +98,16 @@ onMounted(loadStudents)
     <div class="page-heading">
       <div>
         <div class="eyebrow">ADMINISTRATION · ACCOUNTS</div>
-        <h1>学生管理</h1>
-        <p class="sub">统一维护学生资料、邮箱和登录凭据</p>
+        <h1>账号管理</h1>
+        <p class="sub">负责学生账号的启停与登录凭据维护</p>
       </div>
       <button class="btn btn-secondary refresh-btn" @click="loadStudents">↻ 刷新列表</button>
     </div>
 
     <div class="summary-grid">
-      <div class="summary-card card"><span class="summary-icon blue">👥</span><div><span class="summary-label">学生总数</span><strong>{{ activeCount }}</strong></div></div>
+      <div class="summary-card card"><span class="summary-icon blue">👥</span><div><span class="summary-label">启用中的账号</span><strong>{{ activeCount }}</strong></div></div>
       <div class="summary-card card"><span class="summary-icon green">✉</span><div><span class="summary-label">已绑定 QQ 邮箱</span><strong>{{ qqCount }}</strong></div></div>
-      <div class="summary-card card"><span class="summary-icon purple">✓</span><div><span class="summary-label">账号状态</span><strong>正常</strong></div></div>
+      <div class="summary-card card"><span class="summary-icon purple">⏸</span><div><span class="summary-label">已停用账号</span><strong>{{ disabledCount }}</strong></div></div>
     </div>
 
     <div class="toolbar card">
@@ -111,8 +125,12 @@ onMounted(loadStudents)
               <td class="account">{{ student.account }}</td>
               <td>{{ student.email }}</td>
               <td>{{ formatDate(student.createdAt) }}</td>
-              <td><span class="status-pill"><i></i>正常</span></td>
-              <td><div class="row-actions"><button class="btn btn-ghost" @click="editStudent(student)">编辑</button><button class="btn btn-danger" @click="deleteStudent(student)">删除</button></div></td>
+              <td><span class="status-pill" :class="{ disabled: student.status === 'disabled' }"><i></i>{{ student.status === 'disabled' ? '已停用' : '正常' }}</span></td>
+              <td><div class="row-actions">
+                <button v-if="isAdmin" class="btn btn-ghost" @click="toggleStatus(student)">{{ student.status === 'disabled' ? '启用' : '停用' }}</button>
+                <button class="btn btn-ghost" @click="editStudent(student)">编辑</button>
+                <button class="btn btn-danger" @click="deleteStudent(student)">删除</button>
+              </div></td>
             </tr>
             <tr v-if="!loading && filteredStudents.length === 0"><td colspan="6" class="empty-cell">暂无学生账号</td></tr>
             <tr v-if="loading"><td colspan="6" class="empty-cell">加载中...</td></tr>
@@ -169,4 +187,11 @@ onMounted(loadStudents)
 .save-btn { width:100%; margin-top:24px; }
 @media (max-width:980px) { .student-layout { grid-template-columns:1fr; } .editor-card { order:-1; position:static; } }
 @media (max-width:700px) { .page-heading { align-items:stretch; flex-direction:column; } .summary-grid { grid-template-columns:1fr; } .toolbar { align-items:stretch; flex-direction:column; } .search-input { width:100%; } .student-table th,.student-table td { padding:15px 14px; } }
+.status-pill.disabled i {
+  background: var(--error, #ef4444);
+}
+
+.status-pill.disabled {
+  color: var(--error, #ef4444);
+}
 </style>

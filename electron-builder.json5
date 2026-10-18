@@ -1,0 +1,36 @@
+/**
+ * electron-builder 打包配置（Windows 安装包）。
+ * 只打包构建产物 out/main、out/preload、out/renderer 与生产依赖，
+ * 源码、node_modules 开发依赖等不会进入安装包。
+ */
+{
+  appId: 'com.campusevents.campus-activity-manager',
+  productName: '校园活动管理系统',
+  copyright: 'Copyright © 2026 CampusEvents Team',
+  directories: {
+    output: 'release'
+  },
+  files: [
+    'out/main/**/*',
+    'out/preload/**/*',
+    'out/renderer/**/*',
+    'package.json'
+  ],
+  win: {
+    target: [
+      {
+        target: 'nsis',
+        arch: ['x64']
+      }
+    ],
+    artifactName: '校园活动管理系统-Setup-${version}.${ext}'
+  },
+  nsis: {
+    oneClick: false,
+    perMachine: false,
+    allowToChangeInstallationDirectory: true,
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
+    shortcutName: '校园活动管理系统'
+  }
+}
