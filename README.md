@@ -1,4 +1,4 @@
-# 校园活动管理系统 V3.0
+﻿# 校园活动管理系统 V3.0
 
 基于 Vue 3、TypeScript、Electron 30、electron-vite 与 sql.js 的校园活动管理系统。学生可以浏览、报名、候补和查看报名状态，教师可以发布活动、按活动开启审核、查看报名结构与供需情况，管理员负责学生账号启停与违规活动治理。
 
@@ -22,7 +22,7 @@ V2.0 已具备浏览、详情、报名、满员候补、报名审核、取消递
 | 供需失衡 | 5 个热门活动占 10.3% 容量、35.3% 去重申请、87.9% 最终候补、100% 慢请求 | 教师供需概览 + 学生备选推荐 |
 | 时间重叠 | 407 名多活动报名者中 164 名（40.3%）存在 < 2 小时重叠，共 227 对 | 冲突聚合提醒 |
 
-> 这些数据是教师提供的模拟运行样本，不是本系统的实际日志；反馈是非随机样本，比例不能外推为全体用户比例。完整分析见交付包 `analysis/数据分析报告.md`（仓库镜像位于 `docs/analysis/`）。
+> 这些数据是教师提供的模拟运行样本，不是本系统的实际日志；反馈是非随机样本，比例不能外推为全体用户比例。完整分析见交付包 `analysis/数据分析报告.md`（仓库镜像位于 `analysis/`）。
 
 ## 角色与权限
 
@@ -101,7 +101,7 @@ npm run seed:demo     # 在 .screenshots/demo 写入演示库，不覆盖默认�
 npm run screenshots   # 构建（如缺失）+ 演示库 + 启动本地服务 + Edge/Chrome 截图
 ```
 
-截图输出到分析目录的 `screenshots/`（交付包为 `analysis/screenshots/`，扁平仓库布局为 `docs/analysis/screenshots/`）。`seed:demo` 的演示账号为 `2025061010030119` / `123456`。
+截图输出到分析目录的 `screenshots/`（交付包为 `analysis/screenshots/`，扁平仓库布局为 `analysis/screenshots/`）。`seed:demo` 的演示账号为 `2025061010030119` / `123456`。
 
 ## 加密数据库恢复
 
@@ -135,3 +135,4 @@ npm run screenshots   # 构建（如缺失）+ 演示库 + 启动本地服务 + 
 [Environment]::SetEnvironmentVariable("QQ_SMTP_USER", "你的QQ邮箱@qq.com", "User")
 [Environment]::SetEnvironmentVariable("QQ_SMTP_AUTH_CODE", "QQ邮箱SMTP授权码", "User")
 ```
+

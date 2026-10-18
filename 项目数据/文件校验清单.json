@@ -1,0 +1,34 @@
+{
+  "dataset": "Campus Activity V2.0 simulated operational records",
+  "generated_with_fixed_seed": 20261012,
+  "files": {
+    "activity.csv": {
+      "rows_excluding_header": 24,
+      "sha256": "aa140abd8d000af4fadd7e0338b1c48662555bb5b2eb6cd4d80644b37549e41c"
+    },
+    "feedback.csv": {
+      "rows_excluding_header": 112,
+      "sha256": "05891d923ea0317bbb9e4c40a994efd468f46c65fd25af0764e49afbdf61e10e"
+    },
+    "registration_log.csv": {
+      "rows_excluding_header": 2878,
+      "sha256": "a83dcf0d5681495501c39f2842bceeea89c144411cef7a43704f21e7d1285ed7"
+    },
+    "system_log.csv": {
+      "rows_excluding_header": 792,
+      "sha256": "6f787f2bf09a683e594ed84a526e2fbf90e9bab44fb2bf1e5d729d8e19b595f3"
+    },
+    "user_behavior.csv": {
+      "rows_excluding_header": 11027,
+      "sha256": "5b8ec0f3e3142cd4fc5651f3995ac2521914e5feddf30ded623baed5d47b0c88"
+    },
+    "waitlist_log.csv": {
+      "rows_excluding_header": 1006,
+      "sha256": "738c8a5a96dbc78fc708ace38408379e91111d0be74496d6c851909599d6f8e4"
+    },
+    "字段字典.csv": {
+      "rows_excluding_header": 46,
+      "sha256": "96445c6f984235d60f700ad0b9f5bcb63f20b50edd9496c2af5db94c508b3345"
+    }
+  }
+}
